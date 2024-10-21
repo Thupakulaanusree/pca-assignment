@@ -1,0 +1,73 @@
+from sklearn.datasets import load_wine
+import pandas as pd
+
+# Load the dataset
+data = load_wine()
+X = pd.DataFrame(data['data'], columns=data['feature_names'])
+y = pd.Series(data['target'])
+
+# Display first few rows of the dataset
+print(X.head())
+from sklearn.model_selection import train_test_split
+
+# Split the data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+print(f"Training set size: {X_train.shape}, Testing set size: {X_test.shape}")
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, precision_score, recall_score
+
+# Train a Logistic Regression model without PCA
+baseline_model = LogisticRegression(max_iter=10000)
+baseline_model.fit(X_train, y_train)
+
+# Predict on the test set
+y_pred = baseline_model.predict(X_test)
+
+# Evaluate performance
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred, average='weighted')
+recall = recall_score(y_test, y_pred, average='weighted')
+
+print(f"Baseline Model - Accuracy: {accuracy}, Precision: {precision}, Recall: {recall}")
+from sklearn.decomposition import PCA
+import numpy as np
+
+# Function to apply PCA, train a model, and return accuracy
+def apply_pca_train_evaluate(X_train, X_test, y_train, y_test, n_components):
+    pca = PCA(n_components=n_components)
+    
+    # Fit PCA on training data
+    X_train_pca = pca.fit_transform(X_train)
+    
+    # Project test data onto the same components
+    X_test_pca = pca.transform(X_test)
+    
+    # Train Logistic Regression on the reduced data
+    model = LogisticRegression(max_iter=10000)
+    model.fit(X_train_pca, y_train)
+    
+    # Predict and evaluate performance
+    y_pred_pca = model.predict(X_test_pca)
+    accuracy = accuracy_score(y_test, y_pred_pca)
+    
+    return accuracy
+
+# Apply PCA with different numbers of components
+components = [2, 5, 10]
+accuracy_scores = []
+
+for n in components:
+    accuracy = apply_pca_train_evaluate(X_train, X_test, y_train, y_test, n)
+    accuracy_scores.append(accuracy)
+    print(f"PCA with {n} components - Accuracy: {accuracy}")
+import matplotlib.pyplot as plt
+
+# Plot accuracy vs number of PCA components
+plt.figure(figsize=(8,6))
+plt.plot(components, accuracy_scores, marker='o', linestyle='--', color='b')
+plt.title('Accuracy vs Number of PCA Components')
+plt.xlabel('Number of PCA Components')
+plt.ylabel('Accuracy')
+plt.grid(True)
+plt.show()
