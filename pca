@@ -1,0 +1,80 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Load the dataset (assuming it's the Iris dataset from seaborn)
+df = pd.read_csv('/content/iris.csv')  # Replace with your actual file path
+
+# Display first few rows and basic information
+print(df.head())
+print(df.info())
+
+# Check the actual column names in your DataFrame
+print(df.columns)
+
+# Perform basic EDA
+# Replace 'species' with the actual name of the species column from the output above
+sns.pairplot(df, hue='Species')  # Example: If the column is named 'Species'
+plt.show()
+
+# Correlation matrix to observe relationships
+# Select only numerical columns for correlation calculation
+numerical_cols = df.select_dtypes(include=['number']).columns
+sns.heatmap(df[numerical_cols].corr(), annot=True, cmap='coolwarm')
+plt.show()
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+
+# Load the dataset (assuming it's the Iris dataset from seaborn)
+df = pd.read_csv('/content/iris.csv')  # Replace with your actual file path
+
+# Display first few rows and basic information
+print(df.head())
+print(df.info())
+
+# Check the actual column names in your DataFrame
+print(df.columns)
+
+# Separating features and labels
+X = df.iloc[:, :-1]  # assuming the last column is the species label
+# The error was here, using 'species' instead of 'Species'
+y = df['Species']  # Corrected to use 'Species'
+
+# Standardizing the features
+scaler = StandardScaler()
+X_standardized = scaler.fit_transform(X)
+
+# Show standardized features
+print(pd.DataFrame(X_standardized, columns=X.columns).head())
+# Compute the covariance matrix
+cov_matrix = np.cov(X_standardized, rowvar=False)
+print("Covariance Matrix:\n", cov_matrix)
+# Calculate eigenvalues and eigenvectors
+eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
+
+# Display eigenvalues and eigenvectors
+print("Eigenvalues:\n", eigenvalues)
+print("Eigenvectors:\n", eigenvectors)
+
+# Sort the eigenvectors by eigenvalues in decreasing order
+sorted_indices = np.argsort(eigenvalues)[::-1]
+sorted_eigenvectors = eigenvectors[:, sorted_indices]
+
+# Project data onto the first two principal components
+X_pca = X_standardized.dot(sorted_eigenvectors[:, :2])
+
+# Show the projected data (first few rows)
+print(pd.DataFrame(X_pca, columns=['PC1', 'PC2']).head())
+# Create a scatter plot of the data in the new 2D space
+plt.figure(figsize=(8,6))
+# Corrected line: Using 'Species' instead of 'species'
+for species in df['Species'].unique():  
+    plt.scatter(X_pca[y == species, 0], X_pca[y == species, 1], label=species)
+    
+plt.title('PCA of Iris Dataset')
+plt.xlabel('Principal Component 1')
+plt.ylabel('Principal Component 2')
+plt.legend()
+plt.show()
